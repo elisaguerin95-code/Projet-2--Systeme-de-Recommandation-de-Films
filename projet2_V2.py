@@ -15,6 +15,20 @@ import io
 # Pour une mise en page large — doit être EN PREMIER avant tout st.
 st.set_page_config(layout="wide")
 
+# 0. Chargement des fichiers volumineux
+# téléchargement du fichier ML avec beaucoup de colonnes (+/- 8000)
+@st.cache_data #pour éviter de recharger les données dès qu'on change de film
+def load_data():
+    lien_dfimdbML3_V2 = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/dfimdbML3_V2.csv"
+    return pd.read_csv(lien_dfimdbML3_V2, sep=",")
+
+# ajout du modèle entrainé
+@st.cache_resource #pour éviter de recharger les données dès qu'on change de film
+def load_model():
+    lien_modele_reco_V2 = "https://huggingface.co/datasets/Elisa-Guerin/modele_reco_V2/resolve/main/modele_reco_V2.joblib"
+    response = requests.get(lien_modele_reco_V2)
+    return joblib.load(io.BytesIO(response.content))
+
 # 1. Authentification 
 
 lesDonneesDesComptes = {
@@ -60,17 +74,14 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
 # on indente tout notre sit a l'intérieur des conditions de log sinon le site s'affichera sans autentification)
 
     # téléchargement du fichier ML avec beaucoup de colonnes (+/- 8000)
-    lien_dfimdbML3_V2 = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/dfimdbML3_V2.csv"
-    dfimdbML = pd.read_csv(lien_dfimdbML3_V2, sep=",")
-    st.write(f"✅ CSV chargé : {dfimdbML.shape} — {dfimdbML.memory_usage(deep=True).sum() / 1024**2:.1f} MB en mémoire")
+    dfimdbML = load_data()
+    st.write(f"✅ CSV chargé : {dfimdbML.shape}")
 
     #création de nos features avec toutes les lignes et les clonnes encodées
-    X = dfimdbML.iloc[:, 21:]
+    X = dfimdbML.iloc[:, 21:] 
 
     # ajout du modèle entrainé
-    lien_modele_reco_V2 = "https://huggingface.co/datasets/Elisa-Guerin/modele_reco_V2/resolve/main/modele_reco_V2.joblib"
-    response = requests.get(lien_modele_reco_V2)
-    model4 = joblib.load(io.BytesIO(response.content))
+    model4 = load_model()
     st.write(f"✅ Modèle chargé")
 
     # création du X_final avec le modèle entrainé + la colonne Titre de film
