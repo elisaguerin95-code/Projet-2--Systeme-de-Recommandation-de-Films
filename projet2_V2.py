@@ -62,7 +62,7 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     # téléchargement du fichier ML avec beaucoup de colonnes (+/- 8000)
     lien_dfimdbML3_V2 = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/dfimdbML3_V2.csv"
     dfimdbML = pd.read_csv(lien_dfimdbML3_V2, sep=",")
-    st.write(f"✅ CSV chargé : {dfimdbML.shape}")
+    st.write(f"✅ CSV chargé : {dfimdbML.shape} — {dfimdbML.memory_usage(deep=True).sum() / 1024**2:.1f} MB en mémoire")
 
     #création de nos features avec toutes les lignes et les clonnes encodées
     X = dfimdbML.iloc[:, 21:]
