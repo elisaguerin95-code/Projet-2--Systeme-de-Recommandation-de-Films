@@ -1,7 +1,7 @@
 joblib==1.5.3
 pandas==3.0.3
-Requests==2.34.2
-scikit_learn==1.6.1
+requests==2.34.2
+scikit-learn==1.6.1
 streamlit==1.57.0
 deep-translator==1.11.4
 streamlit-authenticator==0.4.2
