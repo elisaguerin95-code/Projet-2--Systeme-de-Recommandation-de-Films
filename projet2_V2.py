@@ -62,6 +62,7 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     # téléchargement du fichier ML avec beaucoup de colonnes (+/- 8000)
     lien_dfimdbML3_V2 = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/dfimdbML3_V2.csv"
     dfimdbML = pd.read_csv(lien_dfimdbML3_V2, sep=",")
+    st.write(f"✅ CSV chargé : {dfimdbML.shape}")
 
     #création de nos features avec toutes les lignes et les clonnes encodées
     X = dfimdbML.iloc[:, 21:]
@@ -70,6 +71,7 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     lien_modele_reco_V2 = "https://huggingface.co/datasets/Elisa-Guerin/modele_reco_V2/resolve/main/modele_reco_V2.joblib"
     response = requests.get(lien_modele_reco_V2)
     model4 = joblib.load(io.BytesIO(response.content))
+    st.write(f"✅ Modèle chargé")
 
     # création du X_final avec le modèle entrainé + la colonne Titre de film
     X_final = X.copy()
