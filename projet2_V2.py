@@ -31,7 +31,7 @@ def load_ML():
     # Chargement de la matrice X en format numpy
     # + léger qu'un CSV pandas, crucial pour rester sous la limite de 1GB de Streamlit Cloud
     # La fonction est nécessaire car @st.cache_data ne fonctionne que sur des fonctions
-    url = "https://huggingface.co/.../X_matrix.npy"
+    url = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/X_matrix.npy"
     response = requests.get(url)
     return np.load(io.BytesIO(response.content))
 
