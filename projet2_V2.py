@@ -176,11 +176,12 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     # le [1:] correspond à la liste des films recommandés en excluant le film de départ.
     # index_des_reco = (array([[0.        , 2.44948974, 2.44948974, 2.82842712, 2.82842712,
     # 2.82842712, 2.82842712, 2.82842712, 2.82842712, 2.82842712,
-    # 2.82842712]]), array([[  0, 131, 207,  43,  50,  47,  71,  48,   1,  17,  12]]))
+    # 2.82842712]]), array([[  0, 131, 207,  43,  50,  47,  71,  48,   1,  17,  12]]))  
     index_des_reco = model4.kneighbors(caracteristique_film_choisi)[1][0][1:]
 
-    # on filtre les 10 resultats obtenus pour ne garde que les 5 mieux notés
-    top5reco = df_affichage.loc[index_des_reco, ["Title", "Year", "imdbRating", "ID"]].sort_values('imdbRating', ascending=False).head(5)
+
+    # on filtre les 10 resultats obtenus pour ne garde que les 5 mieux notés 
+    top5reco = df_affichage.iloc[index_des_reco][["Title", "Year", "imdbRating", "ID"]].sort_values('imdbRating', ascending=False).head(5)
     top5 = top5reco.loc[:, "ID"].values
     top5_titre = top5reco.loc[:, "Title"]
 
