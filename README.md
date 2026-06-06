@@ -10,6 +10,12 @@ Application de recommandation de films basée sur le Machine Learning (algorithm
 
 ---
 
+## 🌐 Application en ligne
+
+👉 [Accéder à l'application](https://projet-2--systeme-de-recommandation-de-films.streamlit.app/)
+
+---
+
 ## 📁 Structure du projet
 
 | Fichier | Description |
@@ -20,8 +26,9 @@ Application de recommandation de films basée sur le Machine Learning (algorithm
 | `Netflix.mp3` | Son de démarrage |
 | `requirements.txt` | Librairies nécessaires |
 | `data_patrickV2.csv` | Dataset source |
-| `dfimdbML3_V2.csv` | Dataset final après nettoyage (généré) |
-| `modele_reco_V2.joblib` | Modèle KNN entraîné (généré) |
+| `df_affichage.csv` | Dataset léger pour l'affichage (généré) |
+| `X_matrix.npy` *(Hugging Face)* | Matrice de features KNN encodées en int8 (~40MB) |
+| `modele_reco_V2.joblib` *(Hugging Face)* | Modèle KNN entraîné (généré) |
 
 ---
 
@@ -47,7 +54,7 @@ Ce fichier prépare les données en 8 étapes :
 Application Streamlit qui :
 - Gère l'authentification des utilisateurs avec (`streamlit-authenticator`)
 - Affiche un bandeau **Wildflix** et joue la musique de démarrage Netflix
-- Charge le dataset final (`dfimdbML3_V2.csv`) et le modèle entraîné (`modele_reco_V2.joblib`)
+- Charge le dataset d'affichage (`df_affichage.csv`) depuis GitHub, la matrice de features (`X_matrix.npy`) et le modèle entraîné (`modele_reco_V2.joblib`) depuis Hugging Face
 - Propose un menu de sélection de film (titre + année pour différencier les homonymes)
 - Affiche le poster, le résumé traduit en français, le genre, la durée, les acteurs, le réalisateur, la note et les nominations du film choisi
 - Recommande 5 films similaires (filtrés parmi les 10 plus proches par note IMDB), affichés dans des onglets avec toutes leurs informations
