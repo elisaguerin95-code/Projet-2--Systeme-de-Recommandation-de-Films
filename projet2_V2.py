@@ -16,15 +16,24 @@ import io
 st.set_page_config(layout="wide")
 
 # 0. Chargement des fichiers volumineux
-# téléchargement du fichier ML avec beaucoup de colonnes (+/- 8000)
+# @st.cache_data est obligatoire ici : sans lui, Streamlit recharge le fichier
+# à chaque interaction utilisateur (changement de film), ce qui provoque un crash mémoire.
+# La fonction est nécessaire car @st.cache_data ne fonctionne que sur des fonctions.
 @st.cache_data #pour éviter de recharger les données dès qu'on change de film
-def load_data():
-    lien_dfimdbML3_V2 = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/dfimdbML3_V2.csv"
-    return pd.read_csv(lien_dfimdbML3_V2, sep=",")
+def load_affichage():
+    # Petit CSV (~5MB) contenant uniquement les infos d'affichage (titre, poster, résumé...)
+    lien_df_affichage = "df_affichage.csv"
+    return pd.read_csv(lien_df_affichage, sep=",")
 
-# ajout du modèle entrainé
-@st.cache_resource #pour éviter de recharger les données dès qu'on change de film
+@st.cache_data
+def load_ML():
+    # Grand CSV contenant uniquement les colonnes encodées pour le modèle KNN (sans les colonnes texte)
+    lien_df_ML_final = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/df_ML_final.csv"
+    return pd.read_csv(lien_df_ML_final, sep=",")
+
+@st.cache_resource # pour éviter de recharger le modèle dès qu'on change de film
 def load_model():
+    # Modèle NearestNeighbors pré-entraîné
     lien_modele_reco_V2 = "https://huggingface.co/datasets/Elisa-Guerin/modele_reco_V2/resolve/main/modele_reco_V2.joblib"
     response = requests.get(lien_modele_reco_V2)
     return joblib.load(io.BytesIO(response.content))
@@ -65,7 +74,7 @@ if st.session_state["authentication_status"] is False:
     st.error("L'username ou le password est/sont incorrect")
 
 elif st.session_state["authentication_status"] is None:
-    st.warning('Les champs username et mot de passe doivent être remplie')
+    st.warning('Les champs username et mot de passe doivent être remplis')
 
 elif st.session_state["authentication_status"]:  # utilisateur connecté
 
@@ -73,12 +82,16 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     authenticator.logout("Déconnexion")
 # on indente tout notre sit a l'intérieur des conditions de log sinon le site s'affichera sans autentification)
 
-    # téléchargement du fichier ML avec beaucoup de colonnes (+/- 8000)
-    dfimdbML = load_data()
-    st.write(f"✅ CSV chargé : {dfimdbML.shape}")
+    # Appels des fonctions de chargement — les données sont mises en cache au premier chargement
+    # et réutilisées sans re-téléchargement à chaque interaction utilisateur
+    df_affichage = load_affichage() # données légères pour l'affichage
+    st.write(f"✅ CSV chargé : {df_affichage.shape}")
+    df_ML = load_ML() # données encodées pour le KNN
 
-    #création de nos features avec toutes les lignes et les clonnes encodées
-    X = dfimdbML.iloc[:, 21:] 
+    # Création de la matrice de features pour le modèle KNN
+    # on part de la colonne 1 (index 1) pour exclure la colonne ID qui n'est pas une feature ML
+    X = df_ML.iloc[:, 1:]  # on saute la colonne ID
+    
 
     # ajout du modèle entrainé
     model4 = load_model()
@@ -86,9 +99,9 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
 
     # création du X_final avec le modèle entrainé + la colonne Titre de film
     X_final = X.copy()
-    X_final["Titre"] = dfimdbML["Title"]
-    X_final["TitreAnnee"] = dfimdbML["Title"] + " (" + dfimdbML["Year"].astype(str) + ")"
-    X_final["ID"] = dfimdbML["ID"]
+    X_final["Titre"] = df_affichage["Title"]
+    X_final["TitreAnnee"] = df_affichage["Title"] + " (" + df_affichage["Year"].astype(str) + ")"
+    X_final["ID"] = df_ML["ID"]
 
     
     # Streamlit : création du site
@@ -113,10 +126,10 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     col1, col2 = st.columns([1, 3], vertical_alignment="center")
     with col1:
         # Récupère l'affiche en fonction de l'ID (car titres en doublons et index différents selon les df)
-        image = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Poster"].values[0] 
+        image = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Poster"].values[0] 
         st.image(image)
     with col2:
-        resume_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Plot"].iloc[0]
+        resume_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Plot"].iloc[0]
         # Test traduction résumé sinon on affiche la caractéristique de base
         try :
             resume_choix_trad = GoogleTranslator(source="en", target="fr").translate(resume_choix)
@@ -125,26 +138,26 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
             st.write(f"📖 Résumé : {resume_choix}")
         
         # Test traduction genre sinon on affiche la caractéristique de base
-        genre_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Genre"].iloc[0]
+        genre_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Genre"].iloc[0]
         try :
             genre_traduit = GoogleTranslator(source="en", target="fr").translate(genre_choix)
             st.write(f"🎞️ Genre : {genre_traduit}")
         except : 
             st.write(f"🎞️ Genre : {genre_choix}")
         
-        annee_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Year"].iloc[0]
+        annee_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Year"].iloc[0]
         st.write(f"📅 Année : {annee_choix}")
-        duree_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Runtime"].iloc[0]
+        duree_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Runtime"].iloc[0]
         st.write(f"⏳ Durée : {duree_choix}")
-        acteurs_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Actors"].iloc[0]
+        acteurs_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Actors"].iloc[0]
         st.write(f"🎭 Acteurs : {acteurs_choix}")
-        realisateur_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Director"].iloc[0]
+        realisateur_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Director"].iloc[0]
         st.write(f"🎬 Réalisateur : {realisateur_choix}")
-        note_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "imdbRating"].iloc[0]
+        note_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "imdbRating"].iloc[0]
         st.write(f"⭐ Note : {note_choix}/10")
-        rated_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Rated"].iloc[0]
+        rated_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Rated"].iloc[0]
         st.write(f"🔞 Rated : {rated_choix}")
-        nomination_choix = dfimdbML.loc[dfimdbML["ID"] == id_film_choisi, "Awards"].iloc[0]
+        nomination_choix = df_affichage.loc[df_affichage["ID"] == id_film_choisi, "Awards"].iloc[0]
         if pd.notna(nomination_choix):
             # Test traduction nomination sinon on affiche la caractéristique de base
             try : 
@@ -167,7 +180,7 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     index_des_reco = model4.kneighbors(caracteristique_film_choisi)[1][0][1:]
 
     # on filtre les 10 resultats obtenus pour ne garde que les 5 mieux notés
-    top5reco = dfimdbML.loc[index_des_reco, ["Title", "Year", "imdbRating", "ID"]].sort_values('imdbRating', ascending=False).head(5)
+    top5reco = df_affichage.loc[index_des_reco, ["Title", "Year", "imdbRating", "ID"]].sort_values('imdbRating', ascending=False).head(5)
     top5 = top5reco.loc[:, "ID"].values
     top5_titre = top5reco.loc[:, "Title"]
 
@@ -188,7 +201,7 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
     # Itérer sur chaque tab et son film correspondant
     for tab, titre, id_film in zip(tabs, top5_titre, top5):
         # Récupère toutes les infos en une seule ligne
-        film_info = dfimdbML.loc[dfimdbML["ID"] == id_film].iloc[0]
+        film_info = df_affichage.loc[df_affichage["ID"] == id_film].iloc[0]
 
         image = film_info["Poster"]
         resume = film_info["Plot"]
