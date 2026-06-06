@@ -27,8 +27,8 @@ Application de recommandation de films basée sur le Machine Learning (algorithm
 | `requirements.txt` | Librairies nécessaires |
 | `data_patrickV2.csv` | Dataset source |
 | `df_affichage.csv` | Dataset léger pour l'affichage (généré) |
-| `X_matrix.npy` *(Hugging Face)* | Matrice de features KNN encodées en int8 (~40MB) |
-| `modele_reco_V2.joblib` *(Hugging Face)* | Modèle KNN entraîné (généré) |
+| [`X_matrix.npy`](https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/X_matrix.npy) *(Hugging Face)* | Matrice de features KNN encodées en int8 (~40MB) |
+| [`modele_reco_V2.joblib`](https://huggingface.co/datasets/Elisa-Guerin/modele_reco_V2/resolve/main/modele_reco_V2.joblib) *(Hugging Face)* | Modèle KNN entraîné (généré) |
 
 ---
 
