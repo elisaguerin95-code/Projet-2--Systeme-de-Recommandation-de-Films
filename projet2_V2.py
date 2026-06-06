@@ -113,9 +113,7 @@ elif st.session_state["authentication_status"]:  # utilisateur connecté
             </audio>
         """, unsafe_allow_html=True)
 
-    if "audio_played" not in st.session_state:
-        autoplay_audio("Netflix.mp3")
-        st.session_state["audio_played"] = True
+    autoplay_audio("Netflix.mp3")
     
 # 3. création des colonnes pour pouvoir centrer l'image
     col1, col2 = st.columns([1, 3], vertical_alignment="center")
