@@ -237,5 +237,14 @@ X = dfimdbML3.iloc[:, 21:]
 model4 = NearestNeighbors(n_neighbors = 11)
 model4.fit(X)
 
+# Export CSV affichage (léger)
+cols_affichage = ["ID", "Title", "Year", "Poster", "Plot", "Genre", 
+                  "Runtime", "Actors", "Director", "imdbRating", "Rated", "Awards"]
+dfimdbML3[cols_affichage].to_csv("df_affichage.csv", index=False)
+
+# Export CSV ML (colonnes encodées + ID uniquement)
+cols_ML = ["ID"] + list(dfimdbML3.columns[21:])
+dfimdbML3[cols_ML].to_csv("df_ML_final.csv", index=False)
+
 # Exportation modèle ML
 joblib.dump(model4, 'modele_reco_V2.joblib')
