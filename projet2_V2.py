@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib 
+import numpy as np
 # pour la musique Netflix
 import base64
 # pour traduire en français le résumé
@@ -27,9 +28,12 @@ def load_affichage():
 
 @st.cache_data
 def load_ML():
-    # Grand CSV contenant uniquement les colonnes encodées pour le modèle KNN (sans les colonnes texte)
-    lien_df_ML_final = "https://huggingface.co/datasets/Elisa-Guerin/dfimdbML3_V2/resolve/main/df_ML_final.csv"
-    return pd.read_csv(lien_df_ML_final, sep=",")
+    # Chargement de la matrice X en format numpy
+    # + léger qu'un CSV pandas, crucial pour rester sous la limite de 1GB de Streamlit Cloud
+    # La fonction est nécessaire car @st.cache_data ne fonctionne que sur des fonctions
+    url = "https://huggingface.co/.../X_matrix.npy"
+    response = requests.get(url)
+    return np.load(io.BytesIO(response.content))
 
 @st.cache_resource # pour éviter de recharger le modèle dès qu'on change de film
 def load_model():
