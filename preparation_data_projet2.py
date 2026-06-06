@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import joblib
 from sklearn.neighbors import NearestNeighbors
+import numpy as np
 
 # 0. Import Dataset Patrick + création colonne ID
 lien = "data_patrickV2.csv"
@@ -232,6 +233,9 @@ dfimdbML3.to_csv("dfimdbML3_V2.csv", index=False)
 
 #création de nos features avec toutes les lignes et les clonnes encodées
 X = dfimdbML3.iloc[:, 21:]
+
+# Sauvegarde de la matrice X en format numpy (.npy) car beaucoup + léger en mémoire qu'un DF pandas (environ 5x moins)
+np.save("X_matrix.npy", X.values)
 
 #entrainement du modèle NearestNeighbors avec 11 car le film séléctionné sera toujours dans la liste
 model4 = NearestNeighbors(n_neighbors = 11)
